@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ChatApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="light-theme">
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h4><i class="fas fa-comments me-2"></i>ChatApp</h4>
+                <div class="d-flex align-items-center mt-2">
+                    <div class="user-avatar me-2" id="userAvatar">U</div>
+                    <div>
+                        <div id="userName">User</div>
+                        <small class="text-muted" id="userStatus">Online</small>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="searchUsers" placeholder="Search users...">
+                </div>
+                <div class="menu-item active" data-view="friends">
+                    <i class="fas fa-users me-2"></i>Friends
+                </div>
+                <div class="menu-item" data-view="all-users">
+                    <i class="fas fa-user-friends me-2"></i>All Users
+                </div>
+                <div class="menu-item" data-view="groups">
+                    <i class="fas fa-layer-group me-2"></i>Groups
+                </div>
+                <div class="menu-item" data-view="profile">
+                    <i class="fas fa-user-cog me-2"></i>Profile Settings
+                </div>
+                <div class="menu-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Window -->
+        <div class="chat-window">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div id="chatHeaderContent">
+                    <h5>Select a friend or group to start chatting</h5>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="text-center text-muted mt-5">
+                    <i class="fas fa-comments fa-3x mb-3"></i>
+                    <p>Select a conversation to start messaging</p>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                <div class="input-group">
+                    <button class="btn btn-outline-secondary" type="button" onclick="toggleEmojiPicker()">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                    <input type="text" class="form-control" id="messageInput" placeholder="Type a message...">
+                    <button class="btn btn-outline-secondary" type="button" onclick="attachFile()">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect()">
+                    <button class="btn btn-primary" type="button" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div id="typingIndicator" class="mt-2 text-muted" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create Group Modal -->
+    <div class="modal fade" id="createGroupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGroupForm">
+                        <div class="mb-3">
+                            <label for="groupName" class="form-label">Group Name</label>
+                            <input type="text" class="form-control" id="groupName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="groupDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="groupDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="groupImage" class="form-label">Group Image (Optional)</label>
+                            <input type="file" class="form-control" id="groupImage" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createGroup()">Create Group</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Group Modal -->
+    <div class="modal fade" id="manageGroupModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manageGroupTitle">Manage Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="section-card">
+                        <h6 class="text-muted text-uppercase mb-2">Members</h6>
+                        <div id="groupMembersContainer" class="d-flex flex-wrap"></div>
+                        <div class="empty-state" id="groupMembersEmpty" style="display:none;">
+                            <i class="fas fa-users"></i>
+                            <p>No members yet. Add users to get started.</p>
+                        </div>
+                    </div>
+                    <div class="section-card">
+                        <label for="groupMemberSelect" class="form-label">Add Member</label>
+                        <div class="input-group">
+                            <select class="form-select" id="groupMemberSelect">
+                                <option value="">Select user</option>
+                            </select>
+                            <button class="btn btn-primary" type="button" onclick="addMemberToGroup()">Add</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette -->
+    <div class="command-palette" id="commandPalette">
+        <div class="command-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">Quick Actions</h6>
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleCommandPalette(false)">Esc</button>
+            </div>
+            <input type="text" class="form-control command-input" id="commandInput" placeholder="Search users, groups or commands... (Ctrl + K)">
+            <div class="command-results mt-3" id="commandResults"></div>
+        </div>
+    </div>
+
+    <!-- Profile Settings Modal - Simplified -->
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-circle me-2"></i>My Profile
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="profileForm">
+                        <div class="mb-4 text-center">
+                            <div class="position-relative d-inline-block">
+                                <img id="profilePicturePreview" src="" alt="Profile" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--primary-color);">
+                                <label for="profilePictureInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2" style="cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                                    <i class="fas fa-camera" style="font-size: 0.9rem;"></i>
+                                </label>
+                            </div>
+                            <input type="file" class="d-none" id="profilePictureInput" accept="image/*" onchange="previewProfilePicture()">
+                            <p class="text-muted small mt-2">Click camera icon to change photo</p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileName" class="form-label">
+                                <i class="fas fa-user me-2"></i>Full Name
+                            </label>
+                            <input type="text" class="form-control" id="profileName" placeholder="Enter your full name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileEmail" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email Address
+                            </label>
+                            <input type="email" class="form-control" id="profileEmail" placeholder="your.email@example.com">
+                            <small class="text-muted">You can update your email address</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profilePhone" class="form-label">
+                                <i class="fas fa-phone me-2"></i>Phone Number
+                            </label>
+                            <input type="tel" class="form-control" id="profilePhone" placeholder="+1234567890">
+                            <small class="text-muted">Optional - Add your phone number</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileStatus" class="form-label">
+                                <i class="fas fa-comment-dots me-2"></i>Status
+                            </label>
+                            <input type="text" class="form-control" id="profileStatus" placeholder="What's on your mind?">
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileTheme" class="form-label">
+                                <i class="fas fa-palette me-2"></i>Theme Preference
+                            </label>
+                            <select class="form-select" id="profileTheme">
+                                <option value="light">Light Mode</option>
+                                <option value="dark">Dark Mode</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProfile()">Save</button>
+                </div>
+                <div class="modal-footer border-top mt-3 pt-3">
+                    <div class="w-100">
+                        <p class="text-muted small mb-2 text-center">Danger Zone</p>
+                        <button type="button" class="btn btn-danger w-100" onclick="deleteAccount()">
+                            <i class="fas fa-trash-alt me-2"></i>Delete My Account
+                        </button>
+                        <small class="text-muted d-block text-center mt-2">This action cannot be undone</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+
+    <button class="floating-fab" onclick="toggleCommandPalette(true)">
+        <i class="fas fa-magic"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="/js/theme.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/websocket.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
+
+

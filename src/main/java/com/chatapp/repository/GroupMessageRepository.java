@@ -1,0 +1,16 @@
+package com.chatapp.repository;
+
+import com.chatapp.entity.ChatGroup;
+import com.chatapp.entity.GroupMessage;
+import com.chatapp.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface GroupMessageRepository extends JpaRepository<GroupMessage, Long> {
+    List<GroupMessage> findByGroupOrderByTimestampAsc(ChatGroup group);
+    List<GroupMessage> findBySender(User sender);
+}
+
+
