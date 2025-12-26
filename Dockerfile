@@ -1,10 +1,10 @@
-# Use Java 21 JDK
-FROM eclipse-temurin:21-jdk-alpine
+# Use a Maven image with JDK installed
+FROM maven:3.9.3-eclipse-temurin-21
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy Maven project files
+# Copy your project files
 COPY pom.xml .
 COPY src ./src
 
@@ -12,4 +12,4 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Run the app
-CMD ["java", "-jar", "target/realtime-chat-app.jar"]
+CMD ["java", "-jar", "target/your-app.jar"]
